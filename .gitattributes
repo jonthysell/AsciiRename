@@ -1,0 +1,25 @@
+# Auto detect text files and perform LF normalization
+
+* text=auto
+
+# C++ files
+*.c   text eol=crlf
+*.cpp text eol=crlf
+*.h   text eol=crlf
+*.hpp text eol=crlf
+
+# Other Files
+*.md  text eol=crlf
+*.yml text eol=lf
+
+# Script files
+*.cmd text eol=crlf
+*.sh  text eol=lf
+
+# Specific files
+CMakeLists.txt text eol=lf
+CMakeSettings.json text eol=crlf
+tasks.json text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.clang-format text eol=lf
