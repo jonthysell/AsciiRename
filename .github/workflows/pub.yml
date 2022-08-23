@@ -1,0 +1,149 @@
+name: Publish Release
+
+env:
+  BuildDir: ./build
+  ScriptDir: ./scripts
+  Product: AsciiRename
+  Prerelease: false
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  pub_create_github_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create Release Notes
+        run: ${{ env.ScriptDir }}/CreateReleaseNotes.ps1
+        shell: pwsh
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ env.Product }} ${{ github.ref }}
+          body_path: ${{ env.BuildDir }}/ReleaseNotes.md
+          draft: false
+          prerelease: ${{ env.Prerelease }}
+
+  pub_build_windows:
+    name: Publish Windows Build
+    runs-on: windows-latest
+    needs: pub_create_github_release
+    strategy:
+      matrix:
+        architecture: [x86, x64]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -G "Visual Studio 17 2022" -A $(If ('${{ matrix.architecture }}' -eq 'x86') { 'Win32' } Else { '${{ matrix.architecture }}' } ) ..
+        cmake --build . --config Release
+
+    - name: Copy Docs
+      run: |
+        Copy-Item -Path README.md -Destination build\Release\ReadMe.txt -Force
+        Copy-Item -Path LICENSE.md -Destination build\Release\License.txt -Force
+        Copy-Item -Path CHANGELOG.md -Destination build\Release\Changelog.txt -Force
+
+    - name: Zip Files
+      run: .\scripts\ZipRelease.ps1 -TargetOutputPackageName ${{ env.Product }}.Windows.${{ matrix.architecture }}.Binaries.zip -TargetOutputDirectory .\build\Release\*
+
+    - name: Upload ${{ matrix.target }} Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.pub_create_github_release.outputs.upload_url }}
+        asset_path: ${{ env.Product }}.Windows.${{ matrix.architecture }}.Binaries.zip
+        asset_name: ${{ env.Product }}.Windows.${{ matrix.architecture }}.Binaries.zip
+        asset_content_type: application/zip
+
+  pub_build_linux:
+    name: Publish Linux Build
+    runs-on: ubuntu-latest
+    needs: pub_create_github_release
+    strategy:
+      matrix:
+        architecture: [x64]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=Release/
+        cmake --build . --config Release
+
+    - name: Copy Docs
+      run: |
+        cp README.md build/Release/ReadMe.txt
+        cp LICENSE.md build/Release/License.txt
+        cp CHANGELOG.md build/Release/Changelog.txt
+    
+    - name: Tar Files
+      run: tar -cvzf ${{ env.Product }}.Linux.${{ matrix.architecture }}.Binaries.tar.gz -C build/Release .
+
+    - name: Upload ${{ matrix.target }} Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.pub_create_github_release.outputs.upload_url }}
+        asset_path: ${{ env.Product }}.Linux.${{ matrix.architecture }}.Binaries.tar.gz
+        asset_name: ${{ env.Product }}.Linux.${{ matrix.architecture }}.Binaries.tar.gz
+        asset_content_type: application/gzip
+
+  pub_build_macos:
+    name: Publish MacOS Build
+    runs-on: macOS-latest
+    needs: pub_create_github_release
+    strategy:
+      matrix:
+        architecture: [x64]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=Release/
+        cmake --build . --config Release
+
+    - name: Copy Docs
+      run: |
+        cp README.md build/Release/ReadMe.txt
+        cp LICENSE.md build/Release/License.txt
+        cp CHANGELOG.md build/Release/Changelog.txt
+    
+    - name: Tar Files
+      run: tar -cvzf ${{ env.Product }}.MacOS.${{ matrix.architecture }}.Binaries.tar.gz -C build/Release .
+
+    - name: Upload ${{ matrix.target }} Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.pub_create_github_release.outputs.upload_url }}
+        asset_path: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.Binaries.tar.gz
+        asset_name: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.Binaries.tar.gz
+        asset_content_type: application/gzip

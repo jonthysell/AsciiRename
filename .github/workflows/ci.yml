@@ -1,0 +1,88 @@
+name: CI Build
+
+env:
+  Product: AsciiRename
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci_build_windows:
+    name: CI Windows Build
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [x86, x64]
+        configuration: [Debug, Release]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -G "Visual Studio 17 2022" -A $(If ('${{ matrix.architecture }}' -eq 'x86') { 'Win32' } Else { '${{ matrix.architecture }}' } ) ..
+        cmake --build . --config ${{ matrix.configuration }}
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.Product }}.Windows.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
+        path: build/${{ matrix.configuration }}/*
+
+  ci_build_linux:
+    name: CI Linux Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [x64]
+        configuration: [Debug, Release]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ matrix.configuration }}/
+        cmake --build . --config ${{ matrix.configuration }}
+    
+    - name: Tar Files
+      run: tar -cvzf ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz -C build/${{ matrix.configuration }} .
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
+        path: ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz
+
+  ci_build_macos:
+    name: CI MacOS Build
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        architecture: [x64]
+        configuration: [Debug, Release]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ matrix.configuration }}/
+        cmake --build . --config ${{ matrix.configuration }}
+    
+    - name: Tar Files
+      run: tar -cvzf ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz -C build/${{ matrix.configuration }} .
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
+        path: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz
