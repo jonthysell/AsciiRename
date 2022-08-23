@@ -17,6 +17,10 @@ extern "C"
 
 #include <anyascii.h>
 
+#ifndef _MSC_VER
+#define wcsicmp wcscasecmp
+#endif
+
 #ifndef VERSION_STR
 #define VERSION_STR "0.0.0"
 #endif
