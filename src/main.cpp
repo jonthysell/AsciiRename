@@ -17,10 +17,6 @@ extern "C"
 
 #include <anyascii.h>
 
-#ifndef _MSC_VER
-#define wcsicmp wcscasecmp
-#endif
-
 #ifndef VERSION_STR
 #define VERSION_STR "0.0.0"
 #endif
@@ -58,29 +54,29 @@ int wmain(int argc, wchar_t *argv[])
 
     for (int i = 1; i < argc; ++i)
     {
-        if (wcsicmp(argv[i], L"--help") == 0)
+        if (wcscmp(argv[i], L"--help") == 0)
         {
             ShowHelp();
             return 0;
         }
-        else if (wcsicmp(argv[i], L"--version") == 0)
+        else if (wcscmp(argv[i], L"--version") == 0)
         {
             ShowVersion();
             return 0;
         }
-        else if (wcsicmp(argv[i], L"--verbose") == 0)
+        else if (wcscmp(argv[i], L"--verbose") == 0)
         {
             verbose = true;
         }
-        else if (wcsicmp(argv[i], L"--recursive") == 0)
+        else if (wcscmp(argv[i], L"--recursive") == 0)
         {
             recursive = true;
         }
-        else if (wcsicmp(argv[i], L"--createDirs") == 0)
+        else if (wcscmp(argv[i], L"--createDirs") == 0)
         {
             createDirs = true;
         }
-        else if (wcsicmp(argv[i], L"--overwrite") == 0)
+        else if (wcscmp(argv[i], L"--overwrite") == 0)
         {
             overwrite = true;
         }
