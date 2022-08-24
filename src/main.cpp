@@ -136,6 +136,10 @@ int main_utf8(int argc, char **argv)
         auto asciiPath = std::filesystem::path(asciiPathStr);
         auto asciiFile = asciiPath.filename();
 
+        std::cout << "Ascii pathstr: \"" << asciiPathStr << "\"\n";
+        std::cout << "Ascii path: \"" << asciiPath.string() << "\"\n";
+        std::cout << "Ascii file: \"" << asciiFile.string() << "\"\n";
+
         bool skip = false;
         bool skipForNow = false;
 
@@ -148,6 +152,9 @@ int main_utf8(int argc, char **argv)
         {
             // Original path exists, get new path
             auto newPath = originalParentPath / asciiFile;
+
+            std::cout << "New path: \"" << newPath.string() << "\"\n";
+
             auto newPathStr = std::string();
 
             AsciiRename::TryGetUtf8(
