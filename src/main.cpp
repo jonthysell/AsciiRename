@@ -6,21 +6,13 @@
 #include <string>
 #include <vector>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-    size_t anyascii(uint_least32_t utf32, const char **ascii);
-#ifdef __cplusplus
-}
-#endif
-
-#include <anyascii.h>
 #include <libpu8.h>
 
 #ifndef VERSION_STR
 #define VERSION_STR "0.0.0"
 #endif
+
+#include "helpers.h"
 
 void ShowVersion()
 {
@@ -31,6 +23,7 @@ void ShowHelp()
 {
     std::cout << "Usage: ascii-rename [options...] [paths...]\n";
     std::cout << "-h, --help       Show this help and exit\n";
+    std::cout << "-n, --no-op      Don't actually rename files\n";
     std::cout << "-o, --overwrite  Overwrite existing file(s)\n";
     std::cout << "-p, --parents    Make parent directory(ies) as needed\n";
     std::cout << "-v, --verbose    Make the output more verbose\n";
@@ -64,6 +57,7 @@ int main_utf8(int argc, char **argv)
     bool verbose = false;
     bool parents = false;
     bool overwrite = false;
+    bool noop = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -91,6 +85,10 @@ int main_utf8(int argc, char **argv)
         {
             overwrite = true;
         }
+        else if (ArgEquals(arg, "-n", "--no-op"))
+        {
+            noop = true;
+        }
         else
         {
             filePaths.push_back(arg);
@@ -102,39 +100,40 @@ int main_utf8(int argc, char **argv)
 
     for (int i = 0; i < filePaths.size(); ++i)
     {
-        auto filename = u8narrow(filePaths[i]);
-        auto asciiFilename = std::string();
-        for (int j = 0; j < filePaths[i].length(); ++j)
-        {
-            uint32_t utf32 = filePaths[i][j];
+        auto oldPathStr = std::string();
+        auto newPathStr = std::string();
 
-            const char *ascii;
-            if (anyascii(utf32, &ascii))
-            {
-                asciiFilename += *ascii;
-            }
-        }
+        AsciiRename::TryGetUtf8(filePaths[i], oldPathStr);
+        AsciiRename::TryGetAscii(filePaths[i], newPathStr);
 
         if (verbose)
         {
-            std::cout << "Processing \"" << filename << "\"...\n";
+            std::cout << "Processing \"" << oldPathStr << "\"...\n";
         }
 
         auto oldPath = std::filesystem::path(filePaths[i]);
-        auto newPath = std::filesystem::path(asciiFilename);
+        auto oldDir = oldPath.parent_path();
+        auto oldFile = oldPath.filename();
 
+        auto newPath = std::filesystem::path(newPathStr);
         auto newDir = newPath.parent_path();
+        auto newFile = newPath.filename();
 
         bool skip = false;
 
         if (!std::filesystem::exists(oldPath))
         {
-            std::cerr << "ERROR: File \"" << filename << "\" doesn't exist.\n";
+            std::cerr << "ERROR: \"" << oldPathStr << "\" doesn't exist.\n";
+            skip = true;
+        }
+        else if (std::filesystem::is_directory(oldPath))
+        {
+            std::cerr << "ERROR: \"" << oldPathStr << "\" is a directory.\n";
             skip = true;
         }
         else if (std::filesystem::exists(newPath) && !overwrite)
         {
-            std::cerr << "ERROR: File \"" << newPath.string() << "\" already exists.\n";
+            std::cerr << "ERROR: \"" << newPath.string() << "\" already exists.\n";
             std::cerr << "ERROR: Specify --overwrite to overwrite.\n";
             skip = true;
         }
@@ -142,11 +141,21 @@ int main_utf8(int argc, char **argv)
         {
             if (parents)
             {
-                if (verbose)
+                if (noop)
                 {
-                    std::cout << "Creating directory \"" << newDir.string() << "\"...\n";
+                    if (verbose)
+                    {
+                        std::cout << "Would have created \"" << newDir.string() << "\"...\n";
+                    }
                 }
-                std::filesystem::create_directories(newDir);
+                else
+                {
+                    if (verbose)
+                    {
+                        std::cout << "Creating \"" << newDir.string() << "\"...\n";
+                    }
+                    std::filesystem::create_directories(newDir);
+                }
             }
             else
             {
@@ -160,13 +169,17 @@ int main_utf8(int argc, char **argv)
         {
             if (verbose)
             {
-                std::cout << "Skipping \"" << filename << "\"...\n";
+                std::cout << "Skipping \"" << oldPathStr << "\"...\n";
             }
             ++skipped;
         }
+        else if (noop)
+        {
+            std::cout << "Would have renamed \"" << oldPathStr << "\" to \"" << newPathStr << "\"...\n";
+        }
         else
         {
-            std::cout << "Renaming \"" << filename << "\" to \"" << asciiFilename << "\"...\n";
+            std::cout << "Renaming \"" << oldPathStr << "\" to \"" << newPathStr << "\"...\n";
 
             if (std::filesystem::exists(newPath))
             {

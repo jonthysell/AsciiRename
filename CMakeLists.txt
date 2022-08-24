@@ -18,6 +18,7 @@ target_include_directories(ascii-rename PRIVATE
 
 target_sources(ascii-rename PRIVATE
     src/main.cpp
+    src/helpers.cpp
 )
 
 set_property(TARGET ascii-rename PROPERTY CXX_STANDARD 17)
