@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <queue>
 
 #include <libpu8.h>
 
@@ -49,9 +49,9 @@ int main_utf8(int argc, char **argv)
 
     // Process arguments
 #ifdef _WIN32
-    auto filePaths = std::vector<std::wstring>();
+    auto pathQueue = std::queue<std::wstring>();
 #else
-    auto filePaths = std::vector<std::string>();
+    auto pathQueue = std::queue<std::string>();
 #endif
 
     // Options
@@ -99,30 +99,34 @@ int main_utf8(int argc, char **argv)
         }
         else
         {
-            filePaths.push_back(arg);
+            pathQueue.push(arg);
         }
     }
 
-    // Process filePaths
+    // Process pathQueue
+    int renames = 0;
     int skipped = 0;
 
-    for (int i = 0; i < filePaths.size(); ++i)
+    while (!pathQueue.empty())
     {
+        auto rawPath = pathQueue.front();
+        pathQueue.pop();
+
         auto originalPathStr = std::string();
 
-        AsciiRename::TryGetUtf8(filePaths[i], originalPathStr);
+        AsciiRename::TryGetUtf8(rawPath, originalPathStr);
 
         if (verbose)
         {
             std::cout << "Processing \"" << originalPathStr << "\"...\n";
         }
 
-        auto originalPath = std::filesystem::path(filePaths[i]);
+        auto originalPath = std::filesystem::path(rawPath);
         auto originalParentPath = originalPath.parent_path();
         auto originalFile = originalPath.filename();
 
         auto asciiPathStr = std::string();
-        AsciiRename::TryGetAscii(filePaths[i], asciiPathStr);
+        AsciiRename::TryGetAscii(rawPath, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
         auto asciiParentPath = asciiPath.parent_path();
@@ -147,7 +151,15 @@ int main_utf8(int argc, char **argv)
             AsciiRename::TryGetUtf8(newPath.string(), newPathStr);
 #endif
 
-            if (std::filesystem::exists(newPath) && !overwrite)
+            if (originalPathStr == newPathStr)
+            {
+                if (verbose)
+                {
+                    std::cout << "No need to rename \"" << originalPathStr << "\".\n";
+                }
+                skip = true;
+            }
+            else if (std::filesystem::exists(newPath) && !overwrite)
             {
                 std::cerr << "ERROR: \"" << newPathStr << "\" already exists.\n";
                 std::cerr << "ERROR: Specify --overwrite to overwrite.\n";
@@ -169,6 +181,7 @@ int main_utf8(int argc, char **argv)
                     std::cout << "Renaming \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
                     std::filesystem::rename(originalPath, newPath);
                 }
+                ++renames;
             }
         }
 
@@ -180,6 +193,11 @@ int main_utf8(int argc, char **argv)
             }
             ++skipped;
         }
+    }
+
+    if (verbose)
+    {
+        std::cout << "Renamed: " << renames << ", Skipped: " << skipped << ", Total: " << renames + skipped << "\n";
     }
 
     return skipped;
