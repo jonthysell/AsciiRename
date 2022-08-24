@@ -40,6 +40,7 @@ void ShowHelp()
 #define ArgEquals(X, Y) (X == L(Y))
 #else
 #define ArgEquals(X, Y) (X == Y)
+#define u8narrow(X) (X)
 #endif
 
 int main_utf8(int argc, char** argv)
