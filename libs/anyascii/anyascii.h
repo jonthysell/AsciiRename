@@ -29,6 +29,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * @param ascii A pointer for the result to be written to; not null-terminated
  * @return The number of chars in *ascii
  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 size_t anyascii(uint_least32_t utf32, const char **ascii);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

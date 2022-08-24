@@ -2,7 +2,9 @@
 
 AsciiRename is a small command-line tool for renaming files with Unicode filenames into transliterated ASCII equivalents.
 
-It was made primarily to assist with managing media files destined for devices with no/limited support for Unicode filenames. It relies primarily on the [AnyAscii Library](https://github.com/anyascii/anyascii) to perform the transliteration.
+It was made primarily to assist with managing media files destined for devices with no/limited support for Unicode filenames.
+
+AsciiRename relies on [AnyAscii](https://github.com/anyascii/anyascii) to perform the transliteration and [libpu8](https://github.com/jofeu/libpu8) to build cross-platform on both Windows and Linux systems.
 
 ## Installation ##
 
@@ -58,6 +60,8 @@ cmake --build .
 
 AsciiRename is open-source under the MIT license.
 
-Copyright (c) 2022 Jon Thysell.
+Copyright (c) 2022 Jon Thysell
 
-AnyAscii Copyright (c) 2020-2022 Hunter WB
+AnyAscii 2020-2022, Hunter WB <hunterwb.com>
+
+libpu8 Copyright (c) 2019, jofeu

@@ -16,6 +16,7 @@ extern "C"
 #endif
 
 #include <anyascii.h>
+#include <libpu8.h>
 
 #ifndef VERSION_STR
 #define VERSION_STR "0.0.0"
@@ -34,7 +35,7 @@ void ShowHelp()
               << "\n";
 }
 
-int wmain(int argc, wchar_t *argv[])
+int main_utf8(int argc, char** argv)
 {
     if (argc < 1)
     {
@@ -43,8 +44,7 @@ int wmain(int argc, wchar_t *argv[])
     }
 
     // Process arguments
-
-    auto filePaths = std::vector<wchar_t *>();
+    auto filePaths = std::vector<std::wstring>();
 
     // Options
     bool verbose = false;
@@ -54,35 +54,37 @@ int wmain(int argc, wchar_t *argv[])
 
     for (int i = 1; i < argc; ++i)
     {
-        if (wcscmp(argv[i], L"--help") == 0)
+        const auto arg = u8widen(argv[i]);
+
+        if (arg == L"--help")
         {
             ShowHelp();
             return 0;
         }
-        else if (wcscmp(argv[i], L"--version") == 0)
+        else if (arg == L"--version")
         {
             ShowVersion();
             return 0;
         }
-        else if (wcscmp(argv[i], L"--verbose") == 0)
+        else if (arg == L"--verbose")
         {
             verbose = true;
         }
-        else if (wcscmp(argv[i], L"--recursive") == 0)
+        else if (arg == L"--recursive")
         {
             recursive = true;
         }
-        else if (wcscmp(argv[i], L"--createDirs") == 0)
+        else if (arg == L"--createDirs")
         {
             createDirs = true;
         }
-        else if (wcscmp(argv[i], L"--overwrite") == 0)
+        else if (arg == L"--overwrite")
         {
             overwrite = true;
         }
         else
         {
-            filePaths.push_back(argv[i]);
+            filePaths.push_back(arg);
         }
     }
 
@@ -91,12 +93,11 @@ int wmain(int argc, wchar_t *argv[])
 
     for (int i = 0; i < filePaths.size(); ++i)
     {
-        auto filename = std::string();
+        auto filename = u8narrow(filePaths[i]);
         auto asciiFilename = std::string();
-        for (int j = 0; j < wcslen(filePaths[i]); ++j)
+        for (int j = 0; j < filePaths[i].length(); ++j)
         {
             uint32_t utf32 = filePaths[i][j];
-            filename += static_cast<char>(utf32);
 
             const char *ascii;
             if (anyascii(utf32, &ascii))
@@ -156,10 +157,7 @@ int wmain(int argc, wchar_t *argv[])
         }
         else
         {
-            if (verbose)
-            {
-                std::cout << "Renaming \"" << filename << "\" to \"" << asciiFilename << "\"...\n";
-            }
+            std::cout << "Renaming \"" << filename << "\" to \"" << asciiFilename << "\"...\n";
 
             if (std::filesystem::exists(newPath))
             {
@@ -172,11 +170,3 @@ int wmain(int argc, wchar_t *argv[])
 
     return skipped;
 }
-
-#ifndef _MSC_VER
-int main(int argc, char *argv[])
-{
-    auto wargv = std::wstring(argv);
-    return wmain(wargv.length(), &wargv);
-}
-#endif
