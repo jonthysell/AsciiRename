@@ -25,7 +25,7 @@ void ShowHelp()
     std::cout << "-h, --help       Show this help and exit\n";
     std::cout << "-n, --no-op      Don't actually rename files\n";
     std::cout << "-o, --overwrite  Overwrite existing file(s)\n";
-    std::cout << "-p, --parents    Make parent directory(ies) as needed\n";
+    std::cout << "-r, --recursive  Rename files and subdirectories recursively\n";
     std::cout << "-v, --verbose    Make the output more verbose\n";
     std::cout << "-V, --version    Show version number and exit\n";
 }
@@ -33,9 +33,10 @@ void ShowHelp()
 #ifdef _WIN32
 #define L(s) L##s
 #define ArgEquals(X, Y, Z) (X == L(Y) || X == L(Z))
+#define ArgStartsWith(X, Y) (X.rfind(L(Y)) == 0)
 #else
 #define ArgEquals(X, Y, Z) (X == Y || X == Z)
-#define u8narrow(X) (X)
+#define ArgStartsWith(X, Y) (X.rfind(Y) == 0)
 #endif
 
 int main_utf8(int argc, char **argv)
@@ -54,10 +55,10 @@ int main_utf8(int argc, char **argv)
 #endif
 
     // Options
-    bool verbose = false;
-    bool parents = false;
-    bool overwrite = false;
     bool noop = false;
+    bool overwrite = false;
+    bool recursive = false;
+    bool verbose = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -73,21 +74,28 @@ int main_utf8(int argc, char **argv)
             ShowVersion();
             return 0;
         }
-        else if (ArgEquals(arg, "-v", "--verbose"))
+        else if (ArgEquals(arg, "-n", "--no-op"))
         {
-            verbose = true;
-        }
-        else if (ArgEquals(arg, "-p", "--parents"))
-        {
-            parents = true;
+            noop = true;
         }
         else if (ArgEquals(arg, "-o", "--overwrite"))
         {
             overwrite = true;
         }
-        else if (ArgEquals(arg, "-n", "--no-op"))
+        else if (ArgEquals(arg, "-r", "--recursive"))
         {
-            noop = true;
+            recursive = true;
+        }
+        else if (ArgEquals(arg, "-v", "--verbose"))
+        {
+            verbose = true;
+        }
+        else if (ArgStartsWith(arg, "-"))
+        {
+            auto argStr = std::string();
+            AsciiRename::TryGetUtf8(arg, argStr);
+            std::cerr << "ERROR: \"" << argStr << "\" option not recognized. Run with --help for usage info.\n";
+            return -1;
         }
         else
         {
@@ -95,73 +103,68 @@ int main_utf8(int argc, char **argv)
         }
     }
 
-    // Perform renames
+    // Process filePaths
     int skipped = 0;
 
     for (int i = 0; i < filePaths.size(); ++i)
     {
-        auto oldPathStr = std::string();
-        auto newPathStr = std::string();
+        auto originalPathStr = std::string();
 
-        AsciiRename::TryGetUtf8(filePaths[i], oldPathStr);
-        AsciiRename::TryGetAscii(filePaths[i], newPathStr);
+        AsciiRename::TryGetUtf8(filePaths[i], originalPathStr);
 
         if (verbose)
         {
-            std::cout << "Processing \"" << oldPathStr << "\"...\n";
+            std::cout << "Processing \"" << originalPathStr << "\"...\n";
         }
 
-        auto oldPath = std::filesystem::path(filePaths[i]);
-        auto oldDir = oldPath.parent_path();
-        auto oldFile = oldPath.filename();
+        auto originalPath = std::filesystem::path(filePaths[i]);
+        auto originalParentPath = originalPath.parent_path();
+        auto originalFile = originalPath.filename();
 
-        auto newPath = std::filesystem::path(newPathStr);
-        auto newDir = newPath.parent_path();
-        auto newFile = newPath.filename();
+        auto asciiPathStr = std::string();
+        AsciiRename::TryGetAscii(filePaths[i], asciiPathStr);
+
+        auto asciiPath = std::filesystem::path(asciiPathStr);
+        auto asciiParentPath = asciiPath.parent_path();
+        auto asciiFile = asciiPath.filename();
 
         bool skip = false;
 
-        if (!std::filesystem::exists(oldPath))
+        if (!std::filesystem::exists(originalPath))
         {
-            std::cerr << "ERROR: \"" << oldPathStr << "\" doesn't exist.\n";
+            std::cerr << "ERROR: \"" << originalPathStr << "\" doesn't exist.\n";
             skip = true;
         }
-        else if (std::filesystem::is_directory(oldPath))
+        else
         {
-            std::cerr << "ERROR: \"" << oldPathStr << "\" is a directory.\n";
-            skip = true;
-        }
-        else if (std::filesystem::exists(newPath) && !overwrite)
-        {
-            std::cerr << "ERROR: \"" << newPath.string() << "\" already exists.\n";
-            std::cerr << "ERROR: Specify --overwrite to overwrite.\n";
-            skip = true;
-        }
-        else if (!std::filesystem::exists(newDir))
-        {
-            if (parents)
+            // Original path exists, get new path
+
+            auto newPath = originalParentPath / asciiFile;
+            auto newPathStr = std::string();
+            AsciiRename::TryGetUtf8(newPath.wstring(), newPathStr);
+
+            if (std::filesystem::exists(newPath) && !overwrite)
             {
-                if (noop)
-                {
-                    if (verbose)
-                    {
-                        std::cout << "Would have created \"" << newDir.string() << "\"...\n";
-                    }
-                }
-                else
-                {
-                    if (verbose)
-                    {
-                        std::cout << "Creating \"" << newDir.string() << "\"...\n";
-                    }
-                    std::filesystem::create_directories(newDir);
-                }
+                std::cerr << "ERROR: \"" << newPathStr << "\" already exists.\n";
+                std::cerr << "ERROR: Specify --overwrite to overwrite.\n";
+                skip = true;
+            }
+            else if (std::filesystem::is_directory(originalPath) && recursive)
+            {
+                // TODO: Implement recursive renaming
             }
             else
             {
-                std::cerr << "ERROR: Need to create parent directory(ies) \"" << newDir.string() << "\".\n";
-                std::cerr << "ERROR: Specify --parents to create parent directory(ies).\n";
-                skip = true;
+                // Just a single item rename
+                if (noop)
+                {
+                    std::cout << "Would have renamed \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
+                }
+                else
+                {
+                    std::cout << "Renaming \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
+                    std::filesystem::rename(originalPath, newPath);
+                }
             }
         }
 
@@ -169,24 +172,9 @@ int main_utf8(int argc, char **argv)
         {
             if (verbose)
             {
-                std::cout << "Skipping \"" << oldPathStr << "\"...\n";
+                std::cout << "Skipping \"" << originalPathStr << "\"...\n";
             }
             ++skipped;
-        }
-        else if (noop)
-        {
-            std::cout << "Would have renamed \"" << oldPathStr << "\" to \"" << newPathStr << "\"...\n";
-        }
-        else
-        {
-            std::cout << "Renaming \"" << oldPathStr << "\" to \"" << newPathStr << "\"...\n";
-
-            if (std::filesystem::exists(newPath))
-            {
-                std::filesystem::remove(newPath);
-            }
-
-            std::filesystem::rename(oldPath, newPath);
         }
     }
 
