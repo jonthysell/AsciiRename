@@ -51,7 +51,11 @@ int main_utf8(int argc, char** argv)
     }
 
     // Process arguments
+#ifdef _WIN32
     auto filePaths = std::vector<std::wstring>();
+#else
+    auto filePaths = std::vector<std::string>();
+#endif
 
     // Options
     bool verbose = false;
