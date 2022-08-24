@@ -3,16 +3,25 @@
 
 #include <filesystem>
 #include <iostream>
+#include <list>
 #include <string>
-#include <queue>
 
 #include <libpu8.h>
+
+#include "helpers.h"
 
 #ifndef VERSION_STR
 #define VERSION_STR "0.0.0"
 #endif
 
-#include "helpers.h"
+#ifdef _WIN32
+#define L(s) L##s
+#define ArgEquals(X, Y, Z) (X == L(Y) || X == L(Z))
+#define ArgStartsWith(X, Y) (X.rfind(L(Y)) == 0)
+#else
+#define ArgEquals(X, Y, Z) (X == Y || X == Z)
+#define ArgStartsWith(X, Y) (X.rfind(Y) == 0)
+#endif
 
 void ShowVersion()
 {
@@ -30,14 +39,15 @@ void ShowHelp()
     std::cout << "-V, --version    Show version number and exit\n";
 }
 
+struct PathItem
+{
 #ifdef _WIN32
-#define L(s) L##s
-#define ArgEquals(X, Y, Z) (X == L(Y) || X == L(Z))
-#define ArgStartsWith(X, Y) (X.rfind(L(Y)) == 0)
+    std::wstring Path;
 #else
-#define ArgEquals(X, Y, Z) (X == Y || X == Z)
-#define ArgStartsWith(X, Y) (X.rfind(Y) == 0)
+    std::string Path;
 #endif
+    bool SubsScanned;
+};
 
 int main_utf8(int argc, char **argv)
 {
@@ -48,11 +58,7 @@ int main_utf8(int argc, char **argv)
     }
 
     // Process arguments
-#ifdef _WIN32
-    auto pathQueue = std::queue<std::wstring>();
-#else
-    auto pathQueue = std::queue<std::string>();
-#endif
+    auto pathItems = std::list<PathItem>();
 
     // Options
     bool noop = false;
@@ -99,7 +105,7 @@ int main_utf8(int argc, char **argv)
         }
         else
         {
-            pathQueue.push(arg);
+            pathItems.push_back({arg, false});
         }
     }
 
@@ -107,32 +113,33 @@ int main_utf8(int argc, char **argv)
     int renames = 0;
     int skipped = 0;
 
-    while (!pathQueue.empty())
+    while (!pathItems.empty())
     {
-        auto rawPath = pathQueue.front();
-        pathQueue.pop();
+        auto rawItem = pathItems.front();
+        pathItems.pop_front();
 
         auto originalPathStr = std::string();
 
-        AsciiRename::TryGetUtf8(rawPath, originalPathStr);
+        AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr);
 
         if (verbose)
         {
             std::cout << "Processing \"" << originalPathStr << "\"...\n";
         }
 
-        auto originalPath = std::filesystem::path(rawPath);
+        auto originalPath = std::filesystem::path(rawItem.Path);
         auto originalParentPath = originalPath.parent_path();
         auto originalFile = originalPath.filename();
 
         auto asciiPathStr = std::string();
-        AsciiRename::TryGetAscii(rawPath, asciiPathStr);
+        AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
         auto asciiParentPath = asciiPath.parent_path();
         auto asciiFile = asciiPath.filename();
 
         bool skip = false;
+        bool skipForNow = false;
 
         if (!std::filesystem::exists(originalPath))
         {
@@ -142,17 +149,46 @@ int main_utf8(int argc, char **argv)
         else
         {
             // Original path exists, get new path
-
             auto newPath = originalParentPath / asciiFile;
             auto newPathStr = std::string();
-#ifdef _WIN32
-            AsciiRename::TryGetUtf8(newPath.wstring(), newPathStr);
-#else
-            AsciiRename::TryGetUtf8(newPath.string(), newPathStr);
-#endif
 
-            if (originalPathStr == newPathStr)
+            AsciiRename::TryGetUtf8(
+#ifdef _WIN32
+                newPath.wstring(),
+#else
+                newPath.string(),
+#endif
+                newPathStr);
+
+            if (std::filesystem::is_directory(originalPath) && recursive && !rawItem.SubsScanned)
             {
+                // Looking at a directory and recursive is true, so:
+                // 1. Push item itself back onto front of list but with scanning disabled
+                // 2. Push children ahead of parent on the list, so they'll get processed first
+
+                if (verbose)
+                {
+                    std::cout << "Re-adding \"" << originalPathStr << "\" and children to queue...\n";
+                }
+
+                pathItems.push_front({rawItem.Path, true});
+
+                for (const auto &child : std::filesystem::directory_iterator(originalPath))
+                {
+                    pathItems.push_front({
+#ifdef _WIN32
+                        child.path().wstring(),
+#else
+                        child.path().string(),
+#endif
+                        false});
+                }
+
+                skipForNow = true;
+            }
+            else if (originalPathStr == newPathStr)
+            {
+                // Path doesn't change with ASCII transliteration
                 if (verbose)
                 {
                     std::cout << "No need to rename \"" << originalPathStr << "\".\n";
@@ -161,17 +197,14 @@ int main_utf8(int argc, char **argv)
             }
             else if (std::filesystem::exists(newPath) && !overwrite)
             {
+                // New path already exists, but overwrite is false
                 std::cerr << "ERROR: \"" << newPathStr << "\" already exists.\n";
                 std::cerr << "ERROR: Specify --overwrite to overwrite.\n";
                 skip = true;
             }
-            else if (std::filesystem::is_directory(originalPath) && recursive)
-            {
-                // TODO: Implement recursive renaming
-            }
             else
             {
-                // Just a single item rename
+                // Just a single path rename
                 if (noop)
                 {
                     std::cout << "Would have renamed \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
@@ -185,7 +218,14 @@ int main_utf8(int argc, char **argv)
             }
         }
 
-        if (skip)
+        if (skipForNow)
+        {
+            if (verbose)
+            {
+                std::cout << "Skipping \"" << originalPathStr << "\" for now...\n";
+            }
+        }
+        else if (skip)
         {
             if (verbose)
             {
