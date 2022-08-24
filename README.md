@@ -64,6 +64,6 @@ AsciiRename is open-source under the MIT license.
 
 Copyright (c) 2022 Jon Thysell
 
-AnyAscii 2020-2022, Hunter WB <hunterwb.com>
+AnyAscii Copyright (c) 2020-2022, Hunter WB <hunterwb.com>
 
 libpu8 Copyright (c) 2019, jofeu
