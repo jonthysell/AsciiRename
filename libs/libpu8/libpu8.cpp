@@ -1,15 +1,25 @@
 /*
 Copyright 2019 Johannes Feulner
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
 
-3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #ifdef _WIN32
@@ -18,7 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstdint>
 
-std::wstring u8widen(const char* s, size_t len, bool throw_on_inv_chars)
+std::wstring u8widen(const char *s, size_t len, bool throw_on_inv_chars)
 {
     if (!len)
         return std::wstring();
@@ -31,7 +41,7 @@ std::wstring u8widen(const char* s, size_t len, bool throw_on_inv_chars)
         {
             std::wstring result;
             result.resize(size_t(num_wchars));
-            wchar_t* pout = const_cast<wchar_t*>(result.data());
+            wchar_t *pout = const_cast<wchar_t *>(result.data());
             MultiByteToWideChar(CP_UTF8, flags, s, ilen, pout, int(result.size()));
             return result;
         }
@@ -52,7 +62,7 @@ std::string u8narrow(const wchar_t *s, size_t len, bool throw_on_inv_chars)
         {
             std::string result;
             result.resize(size_t(utf8_bytes));
-            char* pout = const_cast<char*>(result.data());
+            char *pout = const_cast<char *>(result.data());
             WideCharToMultiByte(CP_UTF8, flags, s, ilen, pout, utf8_bytes, 0, 0);
             return result;
         }
@@ -86,7 +96,6 @@ unsigned num_succeeding_bytes(unsigned char c)
     }
 }
 
-
 U8ConsoleIstreamBufWin32::int_type U8ConsoleIstreamBufWin32::underflow()
 {
     if (gptr() >= egptr())
@@ -115,9 +124,7 @@ U8ConsoleIstreamBufWin32::int_type U8ConsoleIstreamBufWin32::underflow()
     }
 
     return sgetc();
-
 }
-
 
 int U8ConsoleOstreamBufWin32::sync()
 {
@@ -135,7 +142,7 @@ int U8ConsoleOstreamBufWin32::sync()
 
     return 0;
 }
-size_t U8ConsoleOstreamBufWin32::num_trailing_partial_bytes(const std::string& s)
+size_t U8ConsoleOstreamBufWin32::num_trailing_partial_bytes(const std::string &s)
 {
     if (s.empty())
         return 0;

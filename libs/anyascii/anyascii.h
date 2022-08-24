@@ -33,7 +33,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 extern "C"
 {
 #endif
-size_t anyascii(uint_least32_t utf32, const char **ascii);
+    size_t anyascii(uint_least32_t utf32, const char **ascii);
 #ifdef __cplusplus
 }
 #endif

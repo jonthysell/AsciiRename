@@ -43,7 +43,7 @@ void ShowHelp()
 #define u8narrow(X) (X)
 #endif
 
-int main_utf8(int argc, char** argv)
+int main_utf8(int argc, char **argv)
 {
     if (argc < 1)
     {
