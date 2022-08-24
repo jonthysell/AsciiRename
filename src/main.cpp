@@ -172,3 +172,11 @@ int wmain(int argc, wchar_t *argv[])
 
     return skipped;
 }
+
+#ifndef _MSC_VER
+int main(int argc, char *argv[])
+{
+    auto wargv = std::wstring(argv);
+    return wmain(wargv.length(), &wargv);
+}
+#endif
