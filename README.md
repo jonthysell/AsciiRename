@@ -33,6 +33,18 @@ The Linux release provides self-contained x64 binaries which run on many Linux d
 1. Download the latest Linux tar.gz file from https://github.com/jonthysell/AsciiRename/releases/latest
 2. Extract the tar.gz file
 
+## Usage ##
+
+```none
+Usage: ascii-rename [options...] [paths...]
+-h, --help       Show this help and exit
+-n, --no-op      Show what would happen but don't actually rename path(s)
+-o, --overwrite  Overwrite existing paths(s)
+-r, --recursive  Rename files and subdirectories recursively
+-v, --verbose    Make the output more verbose
+-V, --version    Show version number and exit
+```
+
 ## Build ##
 
 This project requires CMake >= 3.16 and a standard C++ build environment.

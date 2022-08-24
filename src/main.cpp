@@ -32,8 +32,8 @@ void ShowHelp()
 {
     std::cout << "Usage: ascii-rename [options...] [paths...]\n";
     std::cout << "-h, --help       Show this help and exit\n";
-    std::cout << "-n, --no-op      Don't actually rename files\n";
-    std::cout << "-o, --overwrite  Overwrite existing file(s)\n";
+    std::cout << "-n, --no-op      Show what would happen but don't actually rename path(s)\n";
+    std::cout << "-o, --overwrite  Overwrite existing paths(s)\n";
     std::cout << "-r, --recursive  Rename files and subdirectories recursively\n";
     std::cout << "-v, --verbose    Make the output more verbose\n";
     std::cout << "-V, --version    Show version number and exit\n";
@@ -51,9 +51,9 @@ struct PathItem
 
 int main_utf8(int argc, char **argv)
 {
-    if (argc < 1)
+    if (argc <= 1)
     {
-        ShowHelp();
+        std::cout << "ascii-rename: try \'ascii-rename --help\' for more information\n";
         return 0;
     }
 
