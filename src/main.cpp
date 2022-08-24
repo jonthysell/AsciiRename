@@ -129,14 +129,13 @@ int main_utf8(int argc, char **argv)
 
         auto originalPath = std::filesystem::path(rawItem.Path);
         auto originalParentPath = originalPath.parent_path();
-        auto originalFile = originalPath.filename();
 
         auto asciiPathStr = std::string();
         AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
-        auto asciiParentPath = asciiPath.parent_path();
-        auto asciiFile = asciiPath.filename();
+        auto asciiFile = asciiPath.stem();
+        asciiFile += asciiPath.extension();
 
         bool skip = false;
         bool skipForNow = false;
