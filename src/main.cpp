@@ -29,17 +29,19 @@ void ShowVersion()
 
 void ShowHelp()
 {
-    std::cout << "Usage: ascii-rename [--version] [--help]"
-              << "\n";
-    std::cout << "                    [<options>] path1 [path2]... [pathN]"
-              << "\n";
+    std::cout << "Usage: ascii-rename [options...] [paths...]\n";
+    std::cout << "-h, --help       Show this help and exit\n";
+    std::cout << "-o, --overwrite  Overwrite existing file(s)\n";
+    std::cout << "-p, --parents    Make parent directory(ies) as needed\n";
+    std::cout << "-v, --verbose    Make the output more verbose\n";
+    std::cout << "-V, --version    Show version number and exit\n";
 }
 
 #ifdef _WIN32
 #define L(s) L##s
-#define ArgEquals(X, Y) (X == L(Y))
+#define ArgEquals(X, Y, Z) (X == L(Y) || X == L(Z))
 #else
-#define ArgEquals(X, Y) (X == Y)
+#define ArgEquals(X, Y, Z) (X == Y || X == Z)
 #define u8narrow(X) (X)
 #endif
 
@@ -60,37 +62,32 @@ int main_utf8(int argc, char **argv)
 
     // Options
     bool verbose = false;
-    bool recursive = false;
-    bool createDirs = false;
+    bool parents = false;
     bool overwrite = false;
 
     for (int i = 1; i < argc; ++i)
     {
         const auto arg = u8widen(argv[i]);
 
-        if (ArgEquals(arg, "--help"))
+        if (ArgEquals(arg, "-h", "--help"))
         {
             ShowHelp();
             return 0;
         }
-        else if (ArgEquals(arg, "--version"))
+        else if (ArgEquals(arg, "-V", "--version"))
         {
             ShowVersion();
             return 0;
         }
-        else if (ArgEquals(arg, "--verbose"))
+        else if (ArgEquals(arg, "-v", "--verbose"))
         {
             verbose = true;
         }
-        else if (ArgEquals(arg, "--recursive"))
+        else if (ArgEquals(arg, "-p", "--parents"))
         {
-            recursive = true;
+            parents = true;
         }
-        else if (ArgEquals(arg, "--createDirs"))
-        {
-            createDirs = true;
-        }
-        else if (ArgEquals(arg, "--overwrite"))
+        else if (ArgEquals(arg, "-o", "--overwrite"))
         {
             overwrite = true;
         }
@@ -143,7 +140,7 @@ int main_utf8(int argc, char **argv)
         }
         else if (!std::filesystem::exists(newDir))
         {
-            if (createDirs)
+            if (parents)
             {
                 if (verbose)
                 {
@@ -153,8 +150,8 @@ int main_utf8(int argc, char **argv)
             }
             else
             {
-                std::cerr << "ERROR: Need to create directory \"" << newDir.string() << "\".\n";
-                std::cerr << "ERROR: Specify --createDirs to create directories.\n";
+                std::cerr << "ERROR: Need to create parent directory(ies) \"" << newDir.string() << "\".\n";
+                std::cerr << "ERROR: Specify --parents to create parent directory(ies).\n";
                 skip = true;
             }
         }
