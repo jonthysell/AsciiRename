@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 #include <stdint.h>
+#include <cstddef>
 
 #ifdef __cplusplus
 extern "C"
