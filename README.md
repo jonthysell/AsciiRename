@@ -1,5 +1,7 @@
 # AsciiRename #
 
+[![CI Build](https://github.com/jonthysell/AsciiRename/actions/workflows/ci.yml/badge.svg)](https://github.com/jonthysell/AsciiRename/actions/workflows/ci.yml)
+
 AsciiRename is a small command-line tool for renaming files with Unicode filenames into transliterated ASCII equivalents.
 
 It was made primarily to assist with managing media files destined for devices with no/limited support for Unicode filenames.
