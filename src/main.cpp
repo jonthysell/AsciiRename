@@ -35,6 +35,13 @@ void ShowHelp()
               << "\n";
 }
 
+#ifdef _WIN32
+#define L(s) L##s
+#define ArgEquals(X, Y) (X == L(Y))
+#else
+#define ArgEquals(X, Y) (X == Y)
+#endif
+
 int main_utf8(int argc, char** argv)
 {
     if (argc < 1)
@@ -56,29 +63,29 @@ int main_utf8(int argc, char** argv)
     {
         const auto arg = u8widen(argv[i]);
 
-        if (arg == L"--help")
+        if (ArgEquals(arg, "--help"))
         {
             ShowHelp();
             return 0;
         }
-        else if (arg == L"--version")
+        else if (ArgEquals(arg, "--version"))
         {
             ShowVersion();
             return 0;
         }
-        else if (arg == L"--verbose")
+        else if (ArgEquals(arg, "--verbose"))
         {
             verbose = true;
         }
-        else if (arg == L"--recursive")
+        else if (ArgEquals(arg, "--recursive"))
         {
             recursive = true;
         }
-        else if (arg == L"--createDirs")
+        else if (ArgEquals(arg, "--createDirs"))
         {
             createDirs = true;
         }
-        else if (arg == L"--overwrite")
+        else if (ArgEquals(arg, "--overwrite"))
         {
             overwrite = true;
         }
