@@ -134,8 +134,7 @@ int main_utf8(int argc, char **argv)
         AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
-        auto asciiFile = asciiPath.stem();
-        asciiFile += asciiPath.extension();
+        auto asciiFile = asciiPath.filename();
 
         bool skip = false;
         bool skipForNow = false;

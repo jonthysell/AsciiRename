@@ -19,7 +19,7 @@ extern "C"
 #include "helpers.h"
 
 #ifndef _WIN32
-#define u8narrow(X) (X)
+#define u8narrow(X) std::string(X)
 #endif
 
 namespace AsciiRename
