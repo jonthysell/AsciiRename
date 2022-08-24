@@ -141,7 +141,11 @@ int main_utf8(int argc, char **argv)
 
             auto newPath = originalParentPath / asciiFile;
             auto newPathStr = std::string();
+#ifdef _WIN32
             AsciiRename::TryGetUtf8(newPath.wstring(), newPathStr);
+#else
+            AsciiRename::TryGetUtf8(newPath.string(), newPathStr);
+#endif
 
             if (std::filesystem::exists(newPath) && !overwrite)
             {
