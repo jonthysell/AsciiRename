@@ -119,7 +119,6 @@ int main_utf8(int argc, char **argv)
         pathItems.pop_front();
 
         auto originalPathStr = std::string();
-
         AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr);
 
         if (verbose)
@@ -151,9 +150,7 @@ int main_utf8(int argc, char **argv)
         else
         {
             // Original path exists, get new path
-            auto newPath = originalParentPath / asciiFile;
-
-            std::cout << "New path: \"" << newPath.string() << "\"\n";
+            auto newPath = originalPath.replace_filename(asciiFile);
 
             auto newPathStr = std::string();
 
@@ -164,6 +161,9 @@ int main_utf8(int argc, char **argv)
                 newPath.string(),
 #endif
                 newPathStr);
+
+            
+            std::cout << "New pathstr: \"" << newPathStr << "\"\n";
 
             if (std::filesystem::is_directory(originalPath) && recursive && !rawItem.SubsScanned)
             {
