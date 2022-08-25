@@ -126,18 +126,15 @@ int main_utf8(int argc, char **argv)
             std::cout << "Processing \"" << originalPathStr << "\"...\n";
         }
 
-        auto originalPath = std::filesystem::canonical(std::filesystem::path(rawItem.Path));
-        auto originalParentPath = std::filesystem::canonical(originalPath.parent_path());
+        auto originalPath = std::filesystem::path(rawItem.Path);
 
         auto asciiPathStr = std::string();
         AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
 
-        auto asciiPath = std::filesystem::canonical(std::filesystem::path(asciiPathStr));
-        auto asciiFile = asciiPath.filename();
+        auto asciiPath = std::filesystem::path(asciiPathStr);
 
         std::cout << "Ascii pathstr: \"" << asciiPathStr << "\"\n";
         std::cout << "Ascii path: \"" << asciiPath.string() << "\"\n";
-        std::cout << "Ascii file: \"" << asciiFile.string() << "\"\n";
 
         bool skip = false;
         bool skipForNow = false;
@@ -150,7 +147,7 @@ int main_utf8(int argc, char **argv)
         else
         {
             // Original path exists, get new path
-            auto newPath = originalParentPath / asciiFile;
+            auto newPath = originalPath.parent_path() / asciiPath.filename();
 
             auto newPathStr = std::string();
 
