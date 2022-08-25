@@ -2,16 +2,8 @@
 // Licensed under the MIT License.
 
 #include <cstddef>
+#include <cstring>
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-    size_t anyascii(uint_least32_t utf32, const char **ascii);
-#ifdef __cplusplus
-}
-#endif
 
 #include <anyascii.h>
 #include <libpu8.h>
