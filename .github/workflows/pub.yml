@@ -58,7 +58,7 @@ jobs:
     - name: Copy Docs
       run: |
         Copy-Item -Path README.md -Destination build\Release\ReadMe.txt -Force
-        Copy-Item -Path LICENSE.md -Destination build\Release\License.txt -Force
+        Copy-Item -Path ${{ env.ScriptDir }}/Licenses.txt -Destination build\Release\Licenses.txt -Force
         Copy-Item -Path CHANGELOG.md -Destination build\Release\Changelog.txt -Force
 
     - name: Zip Files
@@ -95,7 +95,7 @@ jobs:
     - name: Copy Docs
       run: |
         cp README.md build/Release/ReadMe.txt
-        cp LICENSE.md build/Release/License.txt
+        cp ${{ env.ScriptDir }}/Licenses.txt build/Release/Licenses.txt
         cp CHANGELOG.md build/Release/Changelog.txt
     
     - name: Tar Files
@@ -132,7 +132,7 @@ jobs:
     - name: Copy Docs
       run: |
         cp README.md build/Release/ReadMe.txt
-        cp LICENSE.md build/Release/License.txt
+        cp ${{ env.ScriptDir }}/Licenses.txt build/Release/Licenses.txt
         cp CHANGELOG.md build/Release/Changelog.txt
     
     - name: Tar Files
