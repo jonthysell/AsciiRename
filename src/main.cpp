@@ -121,7 +121,7 @@ int main_utf8(int argc, char **argv)
         AsciiRename::TrimTrailingPathSeparator(rawItem.Path);
 
         auto originalPathStr = std::string();
-        AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr);
+        _STL_VERIFY(AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr), "Unable to get UTF8 string.");
 
         if (verbose)
         {
