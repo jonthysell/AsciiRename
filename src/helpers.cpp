@@ -5,6 +5,8 @@
 #include <cstring>
 #include <stdint.h>
 
+#include <filesystem>
+
 #include <anyascii.h>
 #include <libpu8.h>
 #include <utf8.h>
@@ -17,6 +19,31 @@
 
 namespace AsciiRename
 {
+
+void TrimTrailingPathSeparator(
+#ifdef _WIN32
+    std::wstring &s
+#else
+    std::string &s
+#endif
+)
+{
+    if (s.length() > 1 && (s.back() == '\\' || s.back() == '/'))
+    {
+        while ((s.back() == '\\' || s.back() == '/'))
+        {
+#ifdef _WIN32
+            auto path = std::filesystem::path(s);
+            if (path.has_root_path() && path.root_path().wstring() == s)
+            {
+                break;
+
+            }
+#endif
+            s.pop_back();
+        }
+    }
+}
 
 bool TryGetUtf8(
 #ifdef _WIN32
@@ -69,15 +96,13 @@ bool TryGetAscii(std::string const &utf8Input, std::string &output)
     try
     {
         anyascii_string(utf8Input.c_str(), buffer);
-
         output = std::string(buffer);
-        //delete buffer;
         return true;
     }
     catch (...)
     {
         output = nullptr;
-        //delete buffer;
+        delete buffer;
         return false;
     }
 }

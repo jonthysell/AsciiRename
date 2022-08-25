@@ -105,7 +105,7 @@ int main_utf8(int argc, char **argv)
         }
         else
         {
-            pathItems.push_back({arg, false});
+            pathItems.push_back({ arg , false});
         }
     }
 
@@ -117,6 +117,8 @@ int main_utf8(int argc, char **argv)
     {
         auto rawItem = pathItems.front();
         pathItems.pop_front();
+
+        AsciiRename::TrimTrailingPathSeparator(rawItem.Path);
 
         auto originalPathStr = std::string();
         AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr);
@@ -132,9 +134,6 @@ int main_utf8(int argc, char **argv)
         AsciiRename::TryGetAscii(originalPathStr, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
-
-        std::cout << "Ascii pathstr: \"" << asciiPathStr << "\"\n";
-        std::cout << "Ascii path: \"" << asciiPath.string() << "\"\n";
 
         bool skip = false;
         bool skipForNow = false;
@@ -158,9 +157,6 @@ int main_utf8(int argc, char **argv)
                 newPath.string(),
 #endif
                 newPathStr);
-
-            
-            std::cout << "New pathstr: \"" << newPathStr << "\"\n";
 
             if (std::filesystem::is_directory(originalPath) && recursive && !rawItem.SubsScanned)
             {
