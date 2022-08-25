@@ -129,7 +129,7 @@ int main_utf8(int argc, char **argv)
         auto originalPath = std::filesystem::path(rawItem.Path);
 
         auto asciiPathStr = std::string();
-        AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
+        AsciiRename::TryGetAscii(originalPathStr, asciiPathStr);
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
 

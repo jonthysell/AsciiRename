@@ -17,13 +17,7 @@ bool TryGetUtf8(
 #endif
     std::string &output);
 
-bool TryGetAscii(
-#ifdef _WIN32
-    std::wstring const &input,
-#else
-    std::string const &input,
-#endif
-    std::string &output);
+bool TryGetAscii(std::string const &utf8Input, std::string &output);
 
 } // namespace AsciiRename
 
