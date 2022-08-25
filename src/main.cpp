@@ -99,8 +99,15 @@ int main_utf8(int argc, char **argv)
         else if (ArgStartsWith(arg, "-"))
         {
             auto argStr = std::string();
-            AsciiRename::TryGetUtf8(arg, argStr);
-            std::cerr << "ERROR: \"" << argStr << "\" option not recognized. Run with --help for usage info.\n";
+            if (AsciiRename::TryGetUtf8(arg, argStr))
+            {
+                std::cerr << "ERROR: \"" << argStr << "\" option not recognized.";
+            }
+            else
+            {
+                std::cerr << "ERROR: Option not recognized.";
+            }
+            std::cerr << " Run with --help for usage info.\n";
             return -1;
         }
         else
@@ -118,26 +125,32 @@ int main_utf8(int argc, char **argv)
         auto rawItem = pathItems.front();
         pathItems.pop_front();
 
+        AsciiRename::TrimTrailingPathSeparator(rawItem.Path);
+
         auto originalPathStr = std::string();
-        AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr);
+        if (!AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr))
+        {
+            std::cerr << "ERROR: Unable convert a path to UTF8, skipping.\n";
+            ++skipped;
+            continue;
+        }
 
         if (verbose)
         {
             std::cout << "Processing \"" << originalPathStr << "\"...\n";
         }
 
-        auto originalPath = std::filesystem::canonical(std::filesystem::path(rawItem.Path));
-        auto originalParentPath = std::filesystem::canonical(originalPath.parent_path());
+        auto originalPath = std::filesystem::path(rawItem.Path);
 
         auto asciiPathStr = std::string();
-        AsciiRename::TryGetAscii(rawItem.Path, asciiPathStr);
+        if (!AsciiRename::TryGetAscii(originalPathStr, asciiPathStr))
+        {
+            std::cerr << "ERROR: Unable convert path \"" << originalPathStr << "\" to ASCII, skipping.\n";
+            ++skipped;
+            continue;
+        }
 
-        auto asciiPath = std::filesystem::canonical(std::filesystem::path(asciiPathStr));
-        auto asciiFile = asciiPath.filename();
-
-        std::cout << "Ascii pathstr: \"" << asciiPathStr << "\"\n";
-        std::cout << "Ascii path: \"" << asciiPath.string() << "\"\n";
-        std::cout << "Ascii file: \"" << asciiFile.string() << "\"\n";
+        auto asciiPath = std::filesystem::path(asciiPathStr);
 
         bool skip = false;
         bool skipForNow = false;
@@ -150,7 +163,7 @@ int main_utf8(int argc, char **argv)
         else
         {
             // Original path exists, get new path
-            auto newPath = originalParentPath / asciiFile;
+            auto newPath = originalPath.parent_path() / asciiPath.filename();
 
             auto newPathStr = std::string();
 
@@ -161,9 +174,6 @@ int main_utf8(int argc, char **argv)
                 newPath.string(),
 #endif
                 newPathStr);
-
-            
-            std::cout << "New pathstr: \"" << newPathStr << "\"\n";
 
             if (std::filesystem::is_directory(originalPath) && recursive && !rawItem.SubsScanned)
             {
