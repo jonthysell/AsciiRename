@@ -99,13 +99,20 @@ int main_utf8(int argc, char **argv)
         else if (ArgStartsWith(arg, "-"))
         {
             auto argStr = std::string();
-            AsciiRename::TryGetUtf8(arg, argStr);
-            std::cerr << "ERROR: \"" << argStr << "\" option not recognized. Run with --help for usage info.\n";
+            if (AsciiRename::TryGetUtf8(arg, argStr))
+            {
+                std::cerr << "ERROR: \"" << argStr << "\" option not recognized.";
+            }
+            else
+            {
+                std::cerr << "ERROR: Option not recognized.";
+            }
+            std::cerr << " Run with --help for usage info.\n";
             return -1;
         }
         else
         {
-            pathItems.push_back({ arg , false});
+            pathItems.push_back({arg, false});
         }
     }
 
@@ -121,7 +128,12 @@ int main_utf8(int argc, char **argv)
         AsciiRename::TrimTrailingPathSeparator(rawItem.Path);
 
         auto originalPathStr = std::string();
-        _STL_VERIFY(AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr), "Unable to get UTF8 string.");
+        if (!AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr))
+        {
+            std::cerr << "ERROR: Unable convert a path to UTF8, skipping.\n";
+            ++skipped;
+            continue;
+        }
 
         if (verbose)
         {
@@ -131,7 +143,12 @@ int main_utf8(int argc, char **argv)
         auto originalPath = std::filesystem::path(rawItem.Path);
 
         auto asciiPathStr = std::string();
-        AsciiRename::TryGetAscii(originalPathStr, asciiPathStr);
+        if (!AsciiRename::TryGetAscii(originalPathStr, asciiPathStr))
+        {
+            std::cerr << "ERROR: Unable convert path \"" << originalPathStr << "\" to ASCII, skipping.\n";
+            ++skipped;
+            continue;
+        }
 
         auto asciiPath = std::filesystem::path(asciiPathStr);
 

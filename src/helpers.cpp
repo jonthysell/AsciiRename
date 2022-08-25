@@ -37,7 +37,6 @@ void TrimTrailingPathSeparator(
             if (path.has_root_path() && path.root_path().wstring() == s)
             {
                 break;
-
             }
 #endif
             s.pop_back();
