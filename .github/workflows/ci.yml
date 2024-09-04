@@ -28,7 +28,7 @@ jobs:
         cmake --build . --config ${{ matrix.configuration }}
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.Product }}.Windows.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
         path: build/${{ matrix.configuration }}/*
@@ -55,7 +55,7 @@ jobs:
       run: tar -cvzf ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz -C build/${{ matrix.configuration }} .
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
         path: ${{ env.Product }}.Linux.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz
@@ -82,7 +82,7 @@ jobs:
       run: tar -cvzf ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz -C build/${{ matrix.configuration }} .
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries
         path: ${{ env.Product }}.MacOS.${{ matrix.architecture }}.${{ matrix.configuration }}.Binaries.tar.gz
