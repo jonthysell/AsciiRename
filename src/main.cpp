@@ -130,20 +130,10 @@ int main_utf8(int argc, char **argv)
         auto originalPathStr = std::string();
         if (!AsciiRename::TryGetUtf8(rawItem.Path, originalPathStr))
         {
-            std::cerr << "ERROR: Unable convert \"" << rawItem.Path.c_str() << "\"to UTF8, skipping.\n";
+            std::cerr << "ERROR: Unable convert a path to UTF8, skipping.\n";
             ++skipped;
             continue;
         }
-
-#ifdef _WIN32
-        if (!AsciiRename::IsValidWindowsFileName(originalPathStr))
-        {
-            std::cerr << "ERROR: \"" << originalPathStr
-                      << "\" contains invalid characters for Windows filenames, skipping.\n";
-            ++skipped;
-            continue;
-        }
-#endif
 
         if (verbose)
         {
@@ -155,7 +145,7 @@ int main_utf8(int argc, char **argv)
         auto asciiPathStr = std::string();
         if (!AsciiRename::TryGetAscii(originalPathStr, asciiPathStr))
         {
-            std::cerr << "ERROR: Unable convert \"" << originalPathStr << "\" to ASCII, skipping.\n";
+            std::cerr << "ERROR: Unable convert path \"" << originalPathStr << "\" to ASCII, skipping.\n";
             ++skipped;
             continue;
         }
