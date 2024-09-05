@@ -27,6 +27,8 @@ bool TryGetUtf8(
 
 bool TryGetAscii(std::string const &utf8Input, std::string &output);
 
+bool IsValidWindowsFileName(std::string const &input);
+
 } // namespace AsciiRename
 
 #endif

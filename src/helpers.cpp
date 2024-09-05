@@ -106,4 +106,23 @@ bool TryGetAscii(std::string const &utf8Input, std::string &output)
     }
 }
 
+bool IsValidWindowsFileName(std::string const &input)
+{
+    for (char const &c : input)
+    {
+        switch (c)
+        {
+        case '<':
+        case '>':
+        case ':':
+        case '"':
+        case '|':
+        case '?':
+        case '*':
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace AsciiRename
