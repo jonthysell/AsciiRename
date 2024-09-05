@@ -223,6 +223,7 @@ int main_utf8(int argc, char **argv)
                 if (noop)
                 {
                     std::cout << "Would have renamed \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
+                    ++renames;
                 }
                 else
                 {
