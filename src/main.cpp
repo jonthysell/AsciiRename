@@ -227,9 +227,18 @@ int main_utf8(int argc, char **argv)
                 else
                 {
                     std::cout << "Renaming \"" << originalPathStr << "\" to \"" << newPathStr << "\"...\n";
-                    std::filesystem::rename(originalPath, newPath);
+                    try
+                    {
+                        std::filesystem::rename(originalPath, newPath);
+                        ++renames;
+                    }
+                    catch (std::filesystem::filesystem_error e)
+                    {
+                        std::cerr << "ERROR: File system error, unable to rename \"" << originalPathStr << "\" to \""
+                                  << newPathStr << "\".\n";
+                        skip = true;
+                    }
                 }
-                ++renames;
             }
         }
 
