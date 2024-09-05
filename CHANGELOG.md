@@ -1,6 +1,6 @@
 # AsciiRename Changelog #
 
-## next ##
+## v1.1.0 ##
 
 * Upgrade to anyascii 3.2
 * Change emoji replacement to resolve with % instead of :
